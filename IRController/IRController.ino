@@ -52,7 +52,7 @@ void resetReceive() {
 }
 
 //+=============================================================================
-// Setup web server and IR receiver/blaster
+// Setup MQTT Client and pickIR receiver/blaster
 //
 void setup() {
 
