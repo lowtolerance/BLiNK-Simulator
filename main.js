@@ -61,5 +61,5 @@ var client = new Paho.MQTT.Client("espie.duckdns.org", 1884, "client_id");
 
         function onConnect () {
             console.log("onConnect");
-            client.subscribe('ticker');
+            client.subscribe('livingRoomTV');
         }

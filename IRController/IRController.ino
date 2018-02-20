@@ -1,19 +1,22 @@
-#include <FS.h>                                               // This needs to be first, or it all crashes and burns
-
+#include <FS.h>
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
 #include <IRrecv.h>
 #include <IRutils.h>
 #include <ESP8266WiFi.h>
-#include <ArduinoJson.h>
-#include <PubSubClient.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
+#include <WebSocketsServer.h>
 
-const char* ssid = "happywifihappywife";
-const char* password = "L0velyLady";
-const char* mqtt_server = "espie.duckdns.org";
- 
+const char* ssid = "PAAC";
+const char* password = "paac8580744";
+const char* mdnsName = "espie";
+
 WiFiClient espClient;
-PubSubClient client(espClient);
+ESP8266WebServer server = ESP8266WebServer(80);
+WebSocketsServer webSocket = WebSocketsServer(81);
+
+File fsUploadFile;
 // User settings are below here
 
 int pinr1 = 14;                                               // Receiving pin
@@ -52,7 +55,7 @@ void resetReceive() {
 }
 
 //+=============================================================================
-// Setup MQTT Client and pickIR receiver/blaster
+// Setup web server and pickIR receiver/blaster
 //
 void setup() {
 
@@ -60,42 +63,16 @@ void setup() {
   Serial.begin(115200);
   Serial.println("");
   Serial.println("ESP8266 IR Controller");
-  client.setServer(mqtt_server, 1883);
-  client.setCallback(callback);
+  WiFi.begin(ssid, password);
+  startSPIFFS();
+  startWebSocket();
+  startMDNS();
+  startServer();
   irsend1.begin();
   irrecv.enableIRIn();
   Serial.println("Ready to send and receive IR signals");
 }
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (int i=0;i<length;i++) {
-    char receivedChar = (char)payload[i];
-    Serial.print(receivedChar);
-  }
-  Serial.println();
-}
-
-void reconnect() {
- // Loop until we're reconnected
- while (!client.connected()) {
- Serial.print("Attempting MQTT connection...");
- // Attempt to connect
- if (client.connect("ESP8266 Client")) {
-  Serial.println("connected");
-  // ... and subscribe to topic
-  client.subscribe("livingRoomTV");
- } else {
-  Serial.print("failed, rc=");
-  Serial.print(client.state());
-  Serial.println(" try again in 5 seconds");
-  // Wait 5 seconds before retrying
-  delay(5000);
-  }
- }
-}
 
 //+=============================================================================
 // Split string by character
@@ -413,11 +390,9 @@ void irblast(String type, String dataStr, unsigned int len, int rdelay, int puls
 }
 
 void loop() {
-  decode_results  results;                                        // Somewhere to store the results
-  if (!client.connected()) {
-  reconnect();
- }
- client.loop();
+  decode_results  results;  // Somewhere to store the results
+  webSocket.loop();
+  server.handleClient();
   if (irrecv.decode(&results) && !holdReceive) {                  // Grab an IR code
     Serial.println("Signal received:");
     fullCode(&results);                                           // Print the singleline value
@@ -429,3 +404,132 @@ void loop() {
   }
   delay(200);
 }
+
+void startSPIFFS() {
+  SPIFFS.begin();
+  Serial.println("SPIFFS started. Contents:");
+  {
+    Dir dir = SPIFFS.openDir("/");
+    while (dir.next()) {
+      String fileName = dir.fileName();
+      size_t fileSize = dir.fileSize();
+      Serial.printf("\tFS File: %s, size: %s\r\n", fileName.c_str(), formatBytes(fileSize).c_str());
+    }
+    Serial.printf("\n");
+  }
+}
+
+void startWebSocket() {
+  webSocket.begin();
+  webSocket.onEvent(webSocketEvent);
+  Serial.println("WebSocket server started.");
+}
+
+void startMDNS() {
+  MDNS.begin(mdnsName);
+  Serial.print("mDNS responder started: http://");
+  Serial.print(mdnsName);
+  Serial.println(".local");
+}
+
+void startServer() {
+  server.on("/edit.html", HTTP_POST, []() {
+    server.send(200, "text/plain", "");
+  }, handleFileUpload);
+
+  server.onNotFound(handleNotFound);
+
+  server.begin();
+  Serial.println("HTTP server started.");
+}
+
+void handleNotFound() {
+  if(!handleFileRead(server.uri())) {
+    server.send(404, "text/plain", "404: File Not Found");
+  }
+}
+
+bool handleFileRead(String path) {
+  Serial.println("handFileRead: " + path);
+  if (path.endsWith("/")) path += "index.html";
+  String contentType = getContentType(path);
+  String pathWithGz = path + ".gz";
+  if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
+    if (SPIFFS.exists(pathWithGz))
+      path += ".gz";
+     File file = SPIFFS.open(path, "r");
+     size_t sent = server.streamFile(file, contentType);
+     file.close();
+     Serial.println(String("\tSent file: ") + path);
+     return true;
+  }
+  Serial.println(String("\tFile Not Found: ") + path);
+  return false;
+}
+
+void handleFileUpload() {
+  HTTPUpload& upload = server.upload();
+  String path;
+  if (upload.status == UPLOAD_FILE_START) {
+    path = upload.filename;
+    if(!path.startsWith("/")) path = "/"+path;
+    if(!path.endsWith(".gz")) {
+      String pathWithGz = path + ".gz";
+      if(SPIFFS.exists(pathWithGz))
+        SPIFFS.remove(pathWithGz);
+    }
+    Serial.print("handleFileUpload Name: "); 
+    Serial.println(path);
+    fsUploadFile = SPIFFS.open(path, "w");
+    path = String();
+  } else if (upload.status == UPLOAD_FILE_WRITE) {
+    if (fsUploadFile)
+      fsUploadFile.write(upload.buf, upload.currentSize);
+  } else if (upload.status == UPLOAD_FILE_END) {
+    if (fsUploadFile) {
+      fsUploadFile.close();
+      Serial.print("handleFileUpload Size: ");
+      Serial.println(upload.totalSize);
+      server.sendHeader("Location","/success.html");
+      server.send(303);
+    } else {
+      server.send(500, "text/plain", "500: couldn't create file");
+    }
+  }
+}
+
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
+  switch (type) {
+    case WStype_DISCONNECTED:
+      Serial.printf("[%u] Disconnected!\n", num);
+      break;
+    case WStype_CONNECTED: {
+        IPAddress ip = webSocket.remoteIP(num);
+        Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);  
+      }
+      break;
+    case WStype_TEXT:
+      Serial.printf("[%u] get Text: %s\n", num, payload);
+      break;
+  }
+}
+
+String formatBytes(size_t bytes) {
+  if (bytes < 1024) {
+    return String(bytes) + "B";
+  } else if (bytes < (1024 * 1024)) {
+    return String(bytes /1024.0) + "KB";
+  } else if (bytes < (1024 * 1024 * 1024)) {
+    return String(bytes / 1024.0 / 1024.0) + "MB";
+  }
+}
+
+String getContentType(String filename) {
+  if (filename.endsWith(".html")) return "text/html";
+  else if (filename.endsWith(".css")) return "text/css";
+  else if (filename.endsWith(".js")) return "application/javascript";
+  else if (filename.endsWith(".ico")) return "image/x-icon";
+  else if (filename.endsWith(".gz")) return "application/x-gzip";
+  return "text/plain";
+}
+
