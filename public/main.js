@@ -3,7 +3,7 @@ var socket = io("192.168.1.35:5000");
 
 socket.on('example-pong', function (data) {
     console.log(data);
-    stringParser(data["message"]);
+    stringParser(data["BLiNKString"]);
 });
 
 window.addEventListener("load", function() {
@@ -11,7 +11,7 @@ window.addEventListener("load", function() {
 
     button.addEventListener('click', function() {
         console.log("ping");
-        socket.emit("example-ping", { message: '@2#2!' });
+        socket.emit("example-ping", { BLiNKString: '@2#2!' });
     });
 });
 

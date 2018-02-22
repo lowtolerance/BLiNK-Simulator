@@ -40,10 +40,10 @@ function handler (req, res) {
 io.sockets.on('connection', function (socket) {
     socket.on('example-ping', function(data) {
         console.log('ping');
-        BLiNK.stringParser(data["message"]);
+        BLiNK.stringParser(data["BLiNKString"]);
         delay = 2;
         setTimeout(function() {
-            socket.emit("example-pong", { message: '@2#0!'} );
+            socket.emit("example-pong", { BLiNKString: '@2#0!'} );
         }, delay*1000);
     });
 });
