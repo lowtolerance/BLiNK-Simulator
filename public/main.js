@@ -1,5 +1,5 @@
 var client = new Paho.MQTT.Client("espie.duckdns.org", 1884, "client_id");
-var socket = io("http://192.168.1.135:5000");
+var socket = io("localhost:5000");
 
 socket.on('example-pong', function (data) {
     console.log("pong");
