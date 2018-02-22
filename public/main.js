@@ -3,7 +3,7 @@ var socket = io("192.168.1.35:5000");
 
 socket.on('example-pong', function (data) {
     console.log('pong');
-    stringParser(data[message]);
+    stringParser(data["message"]);
 });
 
 window.addEventListener("load", function() {
