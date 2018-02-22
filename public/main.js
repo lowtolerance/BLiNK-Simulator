@@ -2,7 +2,8 @@ var client = new Paho.MQTT.Client("espie.duckdns.org", 1884, "client_id");
 var socket = io("192.168.1.35:5000");
 
 socket.on('example-pong', function (data) {
-    console.log("pong");
+    console.log('pong');
+    stringParser("@2#0!");
 });
 
 window.addEventListener("load", function() {
@@ -10,7 +11,7 @@ window.addEventListener("load", function() {
 
     button.addEventListener('click', function() {
         console.log("ping");
-        socket.emit("example-ping", { duration: 2 });
+        socket.emit("example-ping", { message: '@2#2!' });
     });
 });
 

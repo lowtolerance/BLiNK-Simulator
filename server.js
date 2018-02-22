@@ -39,8 +39,8 @@ function handler (req, res) {
 io.sockets.on('connection', function (socket) {
     socket.on('example-ping', function(data) {
         console.log('ping');
-        delay = data["duration"];
-
+        delay = data["2"];
+        stringParser(message);
         setTimeout(function() {
             socket.emit("example-pong");
         }, delay*1000);
