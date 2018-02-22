@@ -43,7 +43,7 @@ io.sockets.on('connection', function (socket) {
         BLiNK.stringParser(data["BLiNKString"]);
         delay = 2;
         setTimeout(function() {
-            socket.emit("example-pong", { BLiNKString: '@2#0!'} );
+            socket.emit("example-pong", { BLiNKString: '@2#3!'} );
         }, delay*1000);
     });
 });
