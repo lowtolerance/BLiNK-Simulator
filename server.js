@@ -5,7 +5,7 @@ var fs = require('fs');
 
 app.listen(5000);
 
-function handler (req, rs) {
+function handler (req, res) {
     var path = url.parse(req.url).pathname;
 
     if (path == '/') {
