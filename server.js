@@ -3,7 +3,7 @@ var io = require('socket.io')(app);
 var url = require('url');
 var fs = require('fs');
 
-app.listen(81);
+app.listen(5000);
 
 function handler (req, rs) {
     var path = url.parse(req.url).pathname;
