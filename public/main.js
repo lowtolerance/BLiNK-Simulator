@@ -11,7 +11,7 @@ window.addEventListener("load", function() {
 
     button.addEventListener('click', function() {
         console.log("ping");
-        socket.emit("example-ping", { BLiNKString: '@2#2!' });
+        socket.emit("example-ping", { BLiNKString: '@0#0!@1#1!@2#2!@3#3!@4#4!@5#5!@6#6!@7#7!' });
     });
 });
 
