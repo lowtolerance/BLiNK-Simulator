@@ -35,3 +35,14 @@ function handler (req, res) {
         res.end("Error: 404 - File not found.");
     }
 }
+
+io.sockets.on('connection', function (socket) {
+    socket.on('example-ping', function(data) {
+        console.log('ping');
+        delay = data["duration"];
+
+        setTimeout(function() {
+            socket.emit("example-pong");
+        }, delay*1000);
+    });
+});

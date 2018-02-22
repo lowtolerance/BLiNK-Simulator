@@ -1,9 +1,18 @@
 var client = new Paho.MQTT.Client("espie.duckdns.org", 1884, "client_id");
-var socket = new WebSocket("ws://192.168.1.122:81", 'echo-protocol');
+var socket = io("ws://192.168.1.135:5000");
 
-socket.onopen = function (event) {
+socket.on('BLiNK', function (data) {
     socket.send("#0#1!");
-}
+});
+
+window.addEventListener("load", function() {
+    var button = document.getElementById('hello');
+
+    button.addEventListener('click', function() {
+        console.log("ping");
+        socket.emit("example-ping", { duration: 2 });
+    });
+});
 
 client.onMessageArrived = onMessageArrived;
 
