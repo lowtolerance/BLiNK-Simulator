@@ -19,7 +19,7 @@ function handler (req, rs) {
                 res.writeHead(200, {'Content-Type': 'text/html'});
                 res.end(data);
             });
-    } else if( /\.(js)$/.test(path)) ) {
+    } else if( /\.(js)$/.test(path) ) {
         index = fs.readFile(__dirname + '/public' + path,
             function(error, data) {
                 if (error) {
