@@ -38,7 +38,7 @@ function handler (req, res) {
 }
 
 io.sockets.on('connection', function (socket) {
-    socket.on('example-ping', function(data) {
+    socket.on('example-ping', (data) => {
         console.log('ping');
         BLiNK.stringParser(data["BLiNKString"]);
         delay = 2;
