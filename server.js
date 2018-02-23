@@ -10,7 +10,7 @@ function handler (req, res) {
   var path = url.parse(req.url).pathname
 
   if (path === '/') {
-    fs.readFile(path.join(__dirname, '/public/index.html'),
+    fs.readFile(path.resolve(__dirname, '/public/index.html'),
       function (error, data) {
         if (error) {
           res.writeHead(500)
@@ -21,7 +21,7 @@ function handler (req, res) {
         res.end(data)
       })
   } else if (/\.(js)$/.test(path)) {
-    fs.readFile(path.join(__dirname, '/public', path),
+    fs.readFile(path.resolve(__dirname, '/public', path),
       function (error, data) {
         if (error) {
           res.writeHead(500)
