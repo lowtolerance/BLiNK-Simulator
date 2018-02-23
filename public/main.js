@@ -6,6 +6,17 @@ socket.on('example-pong', (data) => {
     stringParser(data["BLiNKString"]);
 });
 
+blocks = document.getElementsByTagName("td");
+for(var i=0; i< blocks.length; i++) {
+    blocks[i].addEventListener("click", bindClick(i));
+}
+
+function bindClick(i) {
+ return function(){
+          console.log("you clicked block number " + i);
+        };
+}
+
 window.addEventListener("load", function() {
     var button = document.getElementById('hello');
 
