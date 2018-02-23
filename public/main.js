@@ -7,6 +7,7 @@ socket.on('example-pong', (data) => {
 });
 
 blocks = document.getElementsByTagName("td");
+console.log(blocks);
 for(var i=0; i< blocks.length; i++) {
     blocks[i].addEventListener("click", bindClick(i));
 }
