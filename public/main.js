@@ -6,10 +6,12 @@ socket.on('example-pong', (data) => {
     stringParser(data["BLiNKString"]);
 });
 
-blocks = document.getElementsByTagName("td");
-console.log(blocks.length);
-for(var i=0; i< blocks.length; i++) {
-    blocks[i].addEventListener("click", bindClick(i));
+window.onload = function () {
+    blocks = document.getElementsByTagName("td");
+    console.log(blocks.length);
+    for(var i=0; i< blocks.length; i++) {
+        blocks[i].addEventListener("click", bindClick(i));
+    }
 }
 
 function bindClick(i) {
