@@ -8,8 +8,9 @@ app.listen(5000)
 
 function handler (req, res) {
   var path = url.parse(req.url).pathname
+
   if (path === '/') {
-    fs.readFile(__dirname + 'public/index.html',
+    var index = fs.readFile(__dirname + 'public/index.html',
       function (error, data) {
         if (error) {
           res.writeHead(500)
@@ -20,7 +21,7 @@ function handler (req, res) {
         res.end(data)
       })
   } else if (/\.(js)$/.test(path)) {
-    fs.readFile(__dirname + path,
+    index = fs.readFile(__dirname + path,
       function (error, data) {
         if (error) {
           res.writeHead(500)
