@@ -22,7 +22,7 @@ function handler (req, res) {
         res.end(data)
       })
   } else if (/\.(js)$/.test(path)) {
-    index = fs.readFile(__dirname + path,
+    index = fs.readFile(__dirname + `/public` + path,
       function (error, data) {
         if (error) {
           res.writeHead(500)
