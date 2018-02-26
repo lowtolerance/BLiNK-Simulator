@@ -13,6 +13,7 @@ function handler (req, res) {
     var index = fs.readFile(__dirname + 'public/index.html',
       function (error, data) {
         if (error) {
+            console.log(error)
           res.writeHead(500)
           return res.end('Error: unable to load index.html')
         }
