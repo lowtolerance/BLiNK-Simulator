@@ -10,7 +10,7 @@ function handler (req, res) {
   var path = url.parse(req.url).pathname
 
   if (path === '/') {
-    var index = fs.readFile(__dirname + 'public/index.html',
+    var index = fs.readFile(__dirname + '/public/index.html',
       function (error, data) {
         if (error) {
             console.log(error)
