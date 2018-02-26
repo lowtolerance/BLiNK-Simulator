@@ -1,6 +1,5 @@
 /* eslint-env Paho */
 /* eslint-env io */
-require('path')
 
 var client = new Paho.MQTT.Client('espie.duckdns.org', 1884, 'client_id')
 var socket = io('192.168.1.35:5000')
